@@ -1,22 +1,117 @@
-### SGS Daily Automation Task
+# SGS Daily Automation Task
 
+This project automates daily reporting tasks for SGS sites using Python scripts and Excel macros.
 
-* 1. Create a python environment.
-`bash python -m venv <name_of_environment>
+---
 
-* 2. Install all of the dependencies in requirements.txt
-`bash pip install -r requirements.txt
+## ⚙️ Setup Instructions
 
-* 3. Open the macros folder and you can see a two macros in there
-     * Copy of PERSONAL
-     * DailyTaskFixFormat
-    Move them into your Documents Folder
+### 1. Create a Python Virtual Environment
 
-* 4. Create a report folder inside the folder of each site
-    example: data/Scott/report
+```bash
+python -m venv venv
+```
 
-* 5. Running the programs
-    Worklist: `bash python worklist.py
-    Rush: `bash python rush.py
+Activate the environment:
 
-    
+- **Windows:**
+
+  ```bash
+  .\venv\Scripts\activate
+  ```
+
+- **macOS/Linux:**
+
+  ```bash
+  source venv/bin/activate
+  ```
+
+---
+
+### 2. Install Dependencies
+
+Make sure you're inside the virtual environment, then run:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+### 3. Configure Excel Macros
+
+In the `macros/` folder, you will find:
+
+- `Copy of PERSONAL.xlsb`
+- `DailyTaskFixFormat.xlsm`
+
+Move both files to your **Documents** folder:
+
+```
+Documents/
+├── PERSONAL.xlsb
+└── DailyTaskFixFormat.xlsm
+```
+
+These macros help automate Excel formatting for daily tasks.
+
+---
+
+### 4. Folder Structure
+
+Each site should have a `report/` subfolder inside its respective folder under `data/`.
+
+Example:
+
+```
+data/
+├── Scott/
+│   └── report/
+├── Texas/
+│   └── report/
+```
+
+---
+
+### 5. Running the Scripts
+
+From the project root directory, run:
+
+- **Worklist Script:**
+
+  ```bash
+  python worklist.py
+  ```
+
+- **Rush Script:**
+
+  ```bash
+  python rush.py
+  ```
+
+---
+
+## 📁 Example Project Structure
+
+```
+SGS-Automation/
+├── data/
+│   ├── Scott/
+│   │   └── report/
+│   └── Texas/
+│       └── report/
+├── macros/
+│   ├── Copy of PERSONAL.xlsb
+│   └── DailyTaskFixFormat.xlsm
+├── requirements.txt
+├── worklist.py
+└── rush.py
+```
+
+---
+
+## 📝 Notes
+
+- Enable macros in Excel for full functionality.
+- If errors occur, check terminal output or log files.
+- Make sure all folder paths and files are correctly placed.
