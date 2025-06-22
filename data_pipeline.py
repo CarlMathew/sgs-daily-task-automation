@@ -11,31 +11,7 @@ warnings.filterwarnings('ignore')
 
 
 class DataPipeline:
-    def add_report_type_in_df(self, df:pd.DataFrame, site: str) -> pd.DataFrame:
-        """
-            This will add all the additional report column in rush priority and late
-            This will depends on the site
-        """
-
-        if site.title() == "Scott":
-            df["GCVOA"] = ''
-            df["GCSEMI"] = ''
-            df["ORGPREP"] = ''
-            df["MSSEMI"] = ''
-            df["MSVOA"] = ''
-            df["METALS"] = ''
-            df["GENCHEM"] = ''
-            df["HG"] = ''
-        
-
-        ### Additional Features: adding the wheat ridge rush for automation
-        if site.title() == "Wheat Ridge":
-            pass
-
-        
-        return df    
     
-
     def xlookup_function(self, lookup_value: str, return_array: str, 
                          today_report:pd.DataFrame, 
                          yesterday_report: pd.DataFrame) -> list[str]:
@@ -46,10 +22,11 @@ class DataPipeline:
                 
         for sample_num in sample_num_ids:
             yesterday_comment: list = yesterday_report.loc[yesterday_report[lookup_value] == sample_num][return_array].to_list()
+
         
             if len(yesterday_comment) == 0:
                 data.append("NA")
-            elif pd.isna(yesterday_comment[0]):
+            elif pd.isna(yesterday_comment[0]) or yesterday_comment[0] == 0:
                 data.append(" 0 ")
             else:
                 try:
@@ -57,15 +34,17 @@ class DataPipeline:
                     data.append(comment)
                 except:
                     data.append(str(yesterday_comment[0]))
+
         return data
         
     
-    # Worklist Pipeline and It's Function
+    ######### Worklist Pipeline and It's Function #########
 
     def count_report_worklist(self, df:pd.DataFrame, excel:csv, report_type: str) -> pd.DataFrame:
         """Count all of the report then store it on csv file. Then sort the due date from oldest to newest"""
 
         # now: datetime = datetime.now() - timedelta(days=1)
+
         now: datetime = datetime.now()
         now: datetime = datetime.combine(now.date(), datetime.min.time())
         df["Due Date"] = pd.to_datetime(df["Due Date"], format="%d-%b-%y")
@@ -120,7 +99,24 @@ class DataPipeline:
         
         return df
 
+    
 
+    def fix_format_comments_genchem(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+            Fixed the dateformat of comments (every date string) in genchem into m/d/yy
+            eg. (5/11/25, 6/15/25)
+        """
+
+        def check_date_and_format(comment:str):
+            parsed_dates = pd.to_datetime(comment, errors="coerce")
+            if pd.notna(parsed_dates):
+                return parsed_dates.strftime("%#m/%#d/%y")
+            else:
+                return comment
+        
+        df["Comments/ETA"] = df["Comments/ETA"].apply(check_date_and_format)
+        return df 
+    
 
     def pipeline_for_worklist(self, 
                                 files:list[str], 
@@ -167,15 +163,20 @@ class DataPipeline:
                     df = self.remove_lc_from_orgprep(df)
                 
 
-
+                # Look up the comments\eta from current to previous
+ 
                 yesterday_report = pd.read_excel(previous_data, sheet_name=report_type)
                 comments_eta = self.xlookup_function("Samplenum", "Comments/ETA", df, yesterday_report)
                 df["Comments/ETA"] = comments_eta
 
 
+
                 # Save the count of late to a csv
                 df = self.count_report_worklist(df, excel_report_path, report_type)                
 
+                # Format the comments\eta of genchem tab
+                if report_type == "GENCHEM":
+                    df = self.fix_format_comments_genchem(df)
 
                 # Additional Cleaning, add more for future reference
                 df = df.fillna(" ")
@@ -183,17 +184,70 @@ class DataPipeline:
                 df[" "] = df[" "].astype(str)
                 df["Comments/ETA"] = df["Comments/ETA"].astype(str)
 
+                # save to csv
                 df.to_csv(file, sep="\t", index=False)
     
     
-    # Rush Pipeline and It's Function
+    ######### Rush Pipeline and It's Function #########
+    def add_report_type_in_df(self, df:pd.DataFrame, site: str) -> pd.DataFrame:
+        """
+            This will add all the additional report column in rush priority and late
+            This will depends on the site
+        """
+
+        if site.title() == "Scott":
+            df["GCVOA"] = ''
+            df["GCSEMI"] = ''
+            df["ORGPREP"] = ''
+            df["MSSEMI"] = ''
+            df["MSVOA"] = ''
+            df["METALS"] = ''
+            df["GENCHEM"] = ''
+            df["HG"] = ''
+        
+
+        ### Done Features: adding the wheat ridge rush for automation
+        if site.title() == "Wheat Ridge":
+            df["GCVOA"] = ''
+            df["GCSEMI"] = ''
+            df["ORGPREP"] = ''
+            df["MSSEMI"] = ''
+            df["MSVOA"] = ''
+            df["METALS"] = ''
+            df["GENCHEM"] = ''
+            df["HG"] = ''
+
+        
+        return df
+    
+
+    def count_report_rush(self, excel:str, rush_count: int, all_rush_count: int, priority_count: int, all_prio_count: int) -> None:
+        """Save the data from counting rush_count, total_rush_count, priority_count, total_priority_count"""
+
+        now: datetime = datetime.now()
+        date_today: str = now.date()
+        new_data: dict = {
+            "Date":date_today,
+            "Rush Count Open Jobs (1-2-3)" : rush_count,
+            "Total Rush Count (1-2-3)": all_rush_count,
+            "Priority Count Open Jobs (4-5-6)": priority_count,
+            "Total Priority Count (4-5-6)": all_prio_count
+        }
+
+        with open(excel, mode="a", newline='') as csvFile:
+            writer = csv.DictWriter(csvFile, fieldnames=["Date", "Rush Count Open Jobs (1-2-3)", 
+                                                         "Total Rush Count (1-2-3)", "Priority Count Open Jobs (4-5-6)",
+                                                         "Total Priority Count (4-5-6)"])
+            writer.writerow(new_data)
+
 
 
     def pipeline_for_rush(self,
                             files: list[str],
                             previous_data: str,
                             qa_samples: str, 
-                            site:str
+                            site:str,
+                            save_rush_count:str
                          ) -> None: 
         
         """
@@ -201,8 +255,6 @@ class DataPipeline:
         """
         
         for file in files:
-            
-
             df = pd.read_csv(
                     file,
                     sep="\t",
@@ -210,34 +262,38 @@ class DataPipeline:
                     on_bad_lines="skip"
                 )
             
-
+            # Remove all the qa samples in Account and add a comments\eta column
             df = df.loc[df["Account"] != qa_samples]
-
             df["Comments/ETA"] = ''
-            df = self.add_report_type_in_df(df, site)
 
+            # add the columns of per worklist
+            df = self.add_report_type_in_df(df, site)
+            
             last_three_columns_rush = df.tail(3)
             
+            # remove the last three row on the dataframe
             df = df.head(len(df) - 3)
 
+            # add a Font with values of "RedAndBold" if in the specified TAT and if not "default" value
             df.loc[df["TAT"].isin(["1", "2", "3", "1*", "2*", "3*"]), "Font"] = "RedAndBold"
             df["Font"].fillna("defualt", inplace=True)
 
-
+            # change the data type of days late and # Spl
             df["Days Late"] = df["Days Late"].astype(int)
             df["# Spl"] = df["# Spl"].astype(int)
 
+            # add a fill color columns with values based on days late
             df.loc[df["Days Late"] >= 1, "FillColor"] = "F4B084"
             df.loc[df["Days Late"] == 0, "FillColor"] = "FFD966"
             df.loc[df["Days Late"] == -1, "FillColor"] = "A9D08E"
             df.loc[df["Days Late"] <=-2, "FillColor"] = "9BC2E6"
-
+            
+            # change the color of all the subcon to blue. If the end of job number is X
             df.loc[df["Job Number"].str.contains(r'X$', regex=True), "FillColor"] = "9BC2E6"
 
-
+            # Counting
             rush_count: int = len(df.loc[ (df["FillColor"] == "F4B084") & (df["TAT"].isin(["1", "2", "3", "1*", "2*", "3*"]))])
             all_rush_count: int = len(df.loc[(df["TAT"].isin(["1", "2", "3", "1*", "2*", "3*"]))])
-            
             priority_count: int = len(df.loc[(df["FillColor"] == "F4B084") & (df["TAT"].isin(["4", "5", "6", "4*", "5*"]))])
             all_priority_count: int = len(df.loc[(df["TAT"].isin(["4", "5", "6", "4*", "5*", "6*"]))])
 
@@ -246,13 +302,16 @@ class DataPipeline:
             print("priority_count: ", priority_count)
             print("all prio count: ", all_priority_count)
 
-            yesterday_report = pd.read_excel(previous_data, sheet_name = "RUSH_PRIORITY")  
-
-            comments_eta: list[str] = self.xlookup_function("Job Number", "Comments/ETA", df, yesterday_report)
+            self.count_report_rush(save_rush_count, rush_count, all_rush_count, priority_count, all_priority_count)
             
+            # Look up the comments\eta from current to previous
+            yesterday_report = pd.read_excel(previous_data, sheet_name = "RUSH_PRIORITY")  
+            comments_eta: list[str] = self.xlookup_function("Job Number", "Comments/ETA", df, yesterday_report)
+  
             df["Comments/ETA"] = comments_eta
             df["Comments/ETA"] = df["Comments/ETA"].astype(str)
-
+            
+            #save to csv
             df.to_csv(file, sep="\t", index=False)
             
 

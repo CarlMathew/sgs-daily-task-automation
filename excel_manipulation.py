@@ -10,6 +10,11 @@ import pandas as pd
 
 
 class ExcelModule:
+    
+    def __init__(self):
+        self.worklist_row_height: int = 21
+        self.rush_row_height: int = 24
+        
 
     def process_automation_worklist(self, ws, columns:list[str], data:list[tuple]) -> bool:
         """
@@ -17,7 +22,7 @@ class ExcelModule:
         """
         try:
             for row in range(1, len(data) + 1):
-                ws.row_dimensions[row].height = 21
+                ws.row_dimensions[row].height = self.worklist_row_height
                 for col in range(len(columns)):
                     char: str = get_column_letter(col + 1)
                     
@@ -104,11 +109,11 @@ class ExcelModule:
                             string_value: str = str(cell_value)
                             ws[cell_name] = string_value
                     elif char == "L": 
-                        ws[cell_name].alignment = Alignment(horizontal="center", vertical="bottom")
+                        ws[cell_name].alignment = Alignment(horizontal="center", vertical="center")
                         string_value: str = cell_value
                         ws[cell_name] = string_value
                     elif char == "M":
-                        ws[cell_name].alignment = Alignment(horizontal="center", vertical="bottom")
+                        ws[cell_name].alignment = Alignment(horizontal="center", vertical="center")
                         try:
                             number_value: int = round(float(cell_value))
                             ws[cell_name] = number_value
@@ -133,7 +138,7 @@ class ExcelModule:
         
         ws.add_table(table_ref)
         
-
+    
 
     def change_style_rush(self, ws, df) -> None:
         """ Update the font and fill color of each cell """
@@ -143,7 +148,7 @@ class ExcelModule:
 
 
         for row in range(2, length_of_rows + 2):
-            ws.row_dimensions[row].height = 24
+            ws.row_dimensions[row].height = self.rush_row_height
             fonts: str = dataframe_dict[row - 2]["Font"]
             fill_color:str = dataframe_dict[row-2]["FillColor"]
             
@@ -193,11 +198,7 @@ class ExcelModule:
                 data: list[tuple] = [tuple(data.values()) for data in df_to_dict]
                 data.insert(0, columns)
                 isFinished:bool = self.process_automation_worklist(ws, columns=columns, data=data)
-                
-                # development
-                # wb.save("test_automation.xlsx")
 
-                # Prod
                 wb.save(to_excel)
 
 
@@ -213,10 +214,6 @@ class ExcelModule:
 
                 is_finished = self.process_automation_rush(ws, df)
                 
-                #development
-                # wb.save("Archive\\test_automation.xlsx")
-
-                # Prod
                 wb.save(to_excel)
 
 

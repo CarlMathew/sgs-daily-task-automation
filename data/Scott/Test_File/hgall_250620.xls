@@ -1,0 +1,13 @@
+SGS Scott, LA	
+DEPARTMENT WORKLIST PRODUCT SUMMARY (wk01p)	
+Jun 20 2025, 02:01 am	
+Worklist ID: HGALL   Samples Only	
+35 Day Worklist for Department: 8 Metals Analysis    (Work due on or before 24-JUL-25)	
+Prod Group: HG    Matrix: <all>    Status: not equal to DONE	
+
+Samplenum	PREM	Acctnum	ST	Matx	Deliv	Program	Location	Analyst	%Sol	TAT	WorkDate	Hold?	Collected	Due Date	Products	Last Workgroup	Last Sample	Leachates	Comments	
+LB16370-1		NOVTXH	TX	WW	COMMB		3W	SAVANNAA	EPA	10	22-JUN-25		12-JUN-25	23-JUN-25	HG	  MP30895:DONE:06/19,MA30121:AQR:06/19				
+DA73098-1		VEOLCOH	CO	SO	COMMBN		3W2			7	23-JUN-25		23-MAY-25	24-JUN-25	ehg				pm=KB	
+LB16515-1		ITTXIR	TX	EF	TRRP		3W2,RR195 6,YSL34 VW	SAVANNAA	EPA	8	25-JUN-25		17-JUN-25	26-JUN-25	HG	  MP30895:DONE:06/19,MA30121:AQR:06/19	Previous: LB11165-1 EFFLUENT		Metals MDL reporting-Need Low Limits-METALS.	
+LB16580-1		MARTLALC	LA	SOL	COMMB		3W			7	25-JUN-25		15-JUN-25	26-JUN-25	ehg					
+LB16576-1		ENLTXH	TX	WW	COMMB		YS-11 VW,OL,3W2,RS200 VW	SAVANNAA	EPA	14	01-JUL-25		16-JUN-25	03-JUL-25	HG	  MP30895:DONE:06/19,MA30121:AQR:06/19	Previous: LB16415-1 WELL 9		624-Include TTHM	
