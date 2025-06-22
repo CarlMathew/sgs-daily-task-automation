@@ -72,6 +72,7 @@ data/
 ```
 
 ---
+### 4.1 Create a folder name `logs`
 
 ### 5. Running the Scripts
 
