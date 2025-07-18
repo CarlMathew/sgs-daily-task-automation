@@ -41,3 +41,22 @@ def setup_rush_logger(name: str) -> logging.Logger:
     
 
     return logging.getLogger(name)
+
+
+def setup_late_logger(name: str) -> logging.Logger:
+    """
+        Logger for the rush.py
+        Keeps records of logs
+    """
+    logging.basicConfig(
+        level=logging.INFO, 
+        format= "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[
+            logging.FileHandler("logs\\late_automation.log"),
+            logging.StreamHandler()
+
+        ]
+    )
+    
+
+    return logging.getLogger(name)

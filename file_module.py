@@ -78,9 +78,7 @@ class FileModule:
             is_createToday_list: list[bool] = [date == files for files in files_creation_date]
             
             return is_createToday_list
-        else:
-            print("No Files Found")
-            return []
+
     
     def files_info(self, folder_path:str = "") -> list[dict]:
         """Return a list dictionary about the information of the files"""
@@ -100,9 +98,6 @@ class FileModule:
             })
                     
             return json.loads(dataFrame.to_json(orient="records"))
-        else:
-            print("No Files Found")
-            return []
         
         
     

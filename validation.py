@@ -37,13 +37,24 @@ class ValidationOfFiles:
                 path_list.append(file)
                 
         return path_list
-        
+    
+    def validate_repgen_file(files:list[str]) -> list[str]:
+        """Get the data from a folder with a name of repgen"""
+
+        path_list: list[str] = []
+
+        for file in files:
+            name_of_file: str = file.split("\\")[-1].split(".")[0]
+
+            if name_of_file.lower() == "repgen":
+                path_list.append(file)
+        return path_list    
     
 
 
 if __name__ == "__main__":
     file_management = FileModule()
-    files:list[str] = file_management.get_data_from_folder(Config.Scott().raw_file_path)
-    validated_files:list[str] =  ValidationOfFiles.validate_rush_file(files)
+    files:list[str] = file_management.get_data_from_folder(Config.Wheat_Ridge().raw_file_path)
+    validated_files:list[str] =  ValidationOfFiles.validate_repgen_file(files)
 
     print(validated_files)

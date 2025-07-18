@@ -23,12 +23,18 @@ def RunMacro(files: list, excel_macro_path: str ,macro_name:str) -> None:
             wb_target.Close(SaveChanges=True)
             
 
-        wb_macro.Close(SaveChanges=False)
-        excel.Quit()
+    except KeyboardInterrupt:
+        print("Script Interrupted. Cleaning up..")
 
     except Exception as e:
         print(f"Please check the macro file: {e}")
 
+    finally:
+        if wb_macro is not None:
+            wb_macro.Close(SaveChanges=False)
+        
+        if excel is not None:
+            excel.Quit()
 
 
     

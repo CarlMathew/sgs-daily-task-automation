@@ -32,3 +32,32 @@ class WorklistDictionary:
             "orgprep": "ORGPREP"
 
         }
+
+        self.Orlando: dict[str:str] ={
+            "gcvnd":"GCVOA",
+            "gcnd":"GCSEMI",
+            "extnd":"ORGPREP",
+            "gcmsnd":"MSSEMI",
+            "msvnd": "MSVOA",
+            "aaallnd": "METALS",
+            "gnallnd": "GENCHEM",
+            "hg":"HG",
+            "lc-qqq": "LCMSPFAS",
+            "lc-qqqprep": "EXTLCMS"
+        }
+
+
+        self.Dayton: dict[str:str] = {
+            "mss": "MSSEMI", 
+            "gcs": "GCSEMI",
+            "msvoa": "MSVOA",
+            "gcvoa": "GCVOA",
+            "msair" : "MSAIR",
+            "gcair": "GCAIR",
+            "gnallnd": "GENCHEM",
+            "aaallnd": "METALS",
+            "ext-nd": "ORGPREP",
+            "lcmspfas": "LCMSPFAS",
+            "hgall": "HG",
+            "extlcms": "EXTLCMS"
+        }
