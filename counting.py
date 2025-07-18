@@ -25,6 +25,31 @@ def AddCellValueOnDataFrame(df:pd.DataFrame, report_type:str) -> pd.DataFrame:
         # df.loc[df["Type"] == "HG", "Cell_Value"] = ""
         df.loc[df["ReportType"] == "MSSEMI", "Cell_Value"] = "B6"
         df.loc[df["ReportType"] == "MSVOA", "Cell_Value"] = "B8"
+    
+    elif report_type.title() == "Orlando":
+        df.loc[df["ReportType"] == "MSSEMI", "Cell_Value"] = "B6" 
+        df.loc[df["ReportType"] == "GCSEMI", "Cell_Value"] = "B7"
+        df.loc[df["ReportType"] == "MSVOA", "Cell_Value"] = "B8"
+        df.loc[df["ReportType"] == "GCVOA", "Cell_Value"] = "B9"
+        df.loc[df["ReportType"] == "GENCHEM", "Cell_Value"] = "B10"
+        df.loc[df["ReportType"] == "METALS", "Cell_Value"] = "B11"
+        df.loc[df["ReportType"] == "ORGPREP", "Cell_Value"] = "B12"
+        df.loc[df["ReportType"] == "LCMSPFAS", "Cell_Value"] = "B13"
+        df.loc[df["ReportType"] == "EXTLCMS", "Cell_Value"] = "B14"
+    
+    elif report_type.title() == "Dayton":
+        df.loc[df["ReportType"] == "MSSEMI", "Cell_Value"] = "C6" 
+        df.loc[df["ReportType"] == "GCSEMI", "Cell_Value"] = "C7"
+        df.loc[df["ReportType"] == "MSVOA", "Cell_Value"] = "C8"
+        df.loc[df["ReportType"] == "GCVOA", "Cell_Value"] = "C9"
+        df.loc[df["ReportType"] == "MSAIR", "Cell_Value"] = "C10"
+        df.loc[df["ReportType"] == "GCAIR", "Cell_Value"] = "C11"
+        df.loc[df["ReportType"] == "GENCHEM", "Cell_Value"] = "C12"
+        df.loc[df["ReportType"] == "METALS", "Cell_Value"] = "C13"
+        df.loc[df["ReportType"] == "ORGPREP", "Cell_Value"] = "C14"
+        df.loc[df["ReportType"] == "LCMSPFAS", "Cell_Value"] = "C15"
+
+
 
 
 
@@ -62,6 +87,3 @@ def CountReportFromWorklist(report_count_path:str, ExcelFilePath="", report:str=
 
     AddDataToReport(df, ExcelFilePath)
 
-
-# if __name__ == "__main__":
-#     CountReportFromWorklist("Daily Count (Report)\\WorkList_Count (Scott).csv", "test_automation.xlsx", "Scott")
