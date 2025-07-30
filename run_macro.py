@@ -4,13 +4,13 @@ import win32com.client as win32
 
 def RunMacro(files: list, excel_macro_path: str ,macro_name:str) -> None:
     """
-        Execute or run a macro in your excel files
+        Execute and run a macro in your excel files
     """
     full_macro_path = os.path.join(os.path.expanduser("~"), "OneDrive - SGS", "Documents", excel_macro_path) # Path of the macro VBA
     try:
 
         excel = win32.gencache.EnsureDispatch("Excel.Application")
-        excel.Visible = True
+        excel.Visible = False
         
         wb_macro = excel.Workbooks.Open(Filename=full_macro_path) # Open the macro path
 

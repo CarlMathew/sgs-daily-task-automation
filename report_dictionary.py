@@ -61,3 +61,25 @@ class WorklistDictionary:
             "hgall": "HG",
             "extlcms": "EXTLCMS"
         }
+
+
+        self.Dayton_Late = {
+            "raviv": "RAVIV",
+            "langan": "LANGAN_SBMT",
+            "ttnjp": "TTNJP",
+            "ttscji": "TTSCJI",
+            "arecnjh": "ARECNJH",
+            "alms": "ALMS"
+        }
+
+        self.Wheat_Ridge_Late = {
+            "aecomhih": "AECOMHIH",
+            "chevrcog": "CHEVRCOG"
+        }
+
+        self.Orlando_Late = {
+            "aecomcod":"AECOMCOD",
+            "aecomtxa": "AECOMTXA",
+            "aerotnor":"AEROTNOR",
+            "plexvavb": "PLEXVAVB"
+        }

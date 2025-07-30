@@ -12,6 +12,8 @@ warnings.filterwarnings('ignore')
 
 
 class DataPipeline:
+
+    """Clean the data of the report"""
     
     def xlookup_function(self, lookup_value: str, return_array: str, 
                          today_report:pd.DataFrame, 
@@ -369,16 +371,18 @@ class DataPipeline:
                 df["Comments/ETA"] = comments_eta
 
 
-
+                # Additional Filters for counting in dayton
                 if main_site == "Dayton":
                     df, total_late = self.reason_filter_for_dayton(df, excel_report_path, report_type)
-                    print(f"{report_type}:{total_late}")
 
                 # Save the count of late to a csv
                 elif main_site == "Others":
                     df = self.count_report_worklist(df, excel_report_path, report_type)    
-                               
 
+
+                # Added Column in Scott (ORGPREP), Spike
+                if main_site == "Scott" and report_type == "ORGPREP":
+                    df["Spikes added"] = " "
 
                 # Format the comments\eta of genchem tab
                 if report_type == "GENCHEM":
@@ -399,6 +403,82 @@ class DataPipeline:
     
     
     ######### Rush Pipeline and It's Function #########
+
+    def filter_data_with_tat_6(self, df: pd.DataFrame, tab: str) -> pd.DataFrame:
+        """Filter all the data in rush tab and late with tat 6"""
+
+        if tab == "rush":
+            account_col: str = "Account"
+            fill_color_tab:str = "FillColor"
+        elif tab == "late":
+            account_col: str = "Account Number"
+            fill_color_tab:str = "Fill Color"
+        
+        data_with_tat_6 = df.loc[ (df[fill_color_tab] == "F4B084") & (df["TAT"].isin([6, "6", "6*"]))][[account_col, "TAT", "Receive Date", fill_color_tab]].reset_index()
+        data_with_tat_6 = data_with_tat_6[~ ( data_with_tat_6[account_col].str.contains(r"^CRANY" , regex = True) | data_with_tat_6[account_col].str.contains(r"^HWIN" , regex = True))].to_dict(orient="records")
+
+
+        for tat in data_with_tat_6:
+            index_num = tat["index"]
+            received_date = tat["Receive Date"] 
+            
+            time_difference = (datetime.now() - received_date).days - 7
+
+            if time_difference > 0:
+                df.loc[index_num, fill_color_tab] = "F4B084"
+            elif time_difference == 0:
+                df.loc[index_num, fill_color_tab] = "FFD966"
+            elif time_difference == -1:
+                df.loc[index_num, fill_color_tab] = "A9D08E"
+            elif time_difference <= -2:
+                df.loc[index_num, fill_color_tab] = "9BC2E6"
+
+
+        return df
+    
+    def filter_special_account(self, df:pd.DataFrame, tab:str, account:str, days:int) -> pd.DataFrame:
+
+        """
+            Fillter all the data in rush and late tab based on account tab
+        
+        """
+        now: datetime = datetime.now()
+        now: datetime = datetime.combine(now.date(), datetime.min.time())
+
+
+        if tab == "rush":
+            account_col: str = "Account"
+            fill_color_tab:str = "FillColor"
+        elif tab == "late":
+            account_col: str = "Account Number"
+            fill_color_tab:str = "Fill Color"
+
+
+        
+        data_with_special_account = df.loc[(df[fill_color_tab] == "F4B084") &(df[account_col].str.contains(rf"^{account}" , regex = True))][[account_col,"Receive Date"]].reset_index().to_dict(orient="records")
+
+        
+        for data in data_with_special_account:
+            index_num = data["index"]
+            receive_date = data["Receive Date"]
+
+            time_difference = (now - receive_date).days - days
+
+            if time_difference > 0:
+                df.loc[index_num, fill_color_tab] = "F4B084"
+
+            elif time_difference == 0:
+                df.loc[index_num, fill_color_tab] = "FFD966"
+            elif time_difference == -1:
+                df.loc[index_num, fill_color_tab] = "A9D08E"
+            elif time_difference <= -2:
+                df.loc[index_num, fill_color_tab] = "9BC2E6"
+            
+
+                
+        return df
+
+
     def add_report_type_in_df(self, df:pd.DataFrame, site: str) -> pd.DataFrame:
         """
             This will add all the additional report column in rush priority and late
@@ -555,8 +635,9 @@ class DataPipeline:
 
         comments_eta_with_due = df.loc[df["FillColor"] == "F4B084"]
 
-        comments_eta_with_due = comments_eta_with_due.loc[(df["Comments/ETA"].str.contains(r"\bdue\b", case=False)) | (df["Comments/ETA"].str.contains(r"\bdd\b", case=False))][["Comments/ETA"]].reset_index().to_dict(orient="records")
-
+        # comments_eta_with_due = comments_eta_with_due.loc[(df["Comments/ETA"].str.contains(r"\bdue\b", case=False)) | (df["Comments/ETA"].str.contains(r"\bdd\b", case=False))][["Comments/ETA"]].reset_index().to_dict(orient="records")
+        comments_eta_with_due = comments_eta_with_due.loc[(df["Comments/ETA"].str.contains(r"\bdue\b", case=False)) | (df["Comments/ETA"].str.contains(r"\bdd\b", case=False))]
+        comments_eta_with_due = comments_eta_with_due.loc[~(df["Comments/ETA"].str.contains(r"\bpast\b", case=False))][["Comments/ETA"]].reset_index().to_dict(orient="records")
 
         for comments in comments_eta_with_due:
             comment_eta:str = comments["Comments/ETA"]
@@ -597,10 +678,12 @@ class DataPipeline:
 
         df["Receive Date"] = pd.to_datetime(df["Receive Date"], format="%d-%b-%y")
 
-        # Filter all the rows with a comments/ETA of DONE or COMPLETED
-        df.loc[(df["FillColor"] == "F4B084") & (df["Comments/ETA"] == "DONE"), "FillColor"] = "9BC2E6"
-        df.loc[(df["FillColor"] == "F4B084") & (df["Comments/ETA"] == "COMPLETED"), "FillColor"] = "9BC2E6"
 
+
+        # Filter all the rows with a comments/ETA of DONE or COMPLETED
+        df.loc[(df["FillColor"] == "F4B084") & (df["Comments/ETA"].str.contains(r"^Done", case=False)), "FillColor"] = "9BC2E6"
+        df.loc[(df["FillColor"] == "F4B084") & (df["Comments/ETA"].str.contains(r"^Completed", case=False)), "FillColor"] = "9BC2E6"
+            
         
         df = self.comments_eta_with_date(df)
 
@@ -611,17 +694,31 @@ class DataPipeline:
         df.loc[(df["FillColor"] == "F4B084") & (df["Account"] == "ERACOA" ), "FillColor"] = "9BC2E6"
 
 
-        filter_date_tat = now - timedelta(days=7)
-        df.loc[(df["FillColor"] == "F4B084") &  (df["TAT"].isin([6, "6", "6*"])) & (df["Receive Date"] >= filter_date_tat), "FillColor"] = "9BC2E6"
+        #filter_date_tat = now - timedelta(days=7)
+        #df.loc[(df["FillColor"] == "F4B084") &  (df["TAT"].isin([6, "6", "6*"])) & (df["Receive Date"] >= filter_date_tat), "FillColor"] = "9BC2E6"
 
-        filter_date_crany = now - timedelta(days=14)
-        df.loc[(df["FillColor"] == "F4B084") &  (df["Account"].str.contains(r"^CRANY" , regex = True)) & (df["Receive Date"] >= filter_date_crany), "FillColor"] = "9BC2E6"
+        # filter_date_crany = now - timedelta(days=14)
+        # df.loc[(df["FillColor"] == "F4B084") &  (df["Account"].str.contains(r"^CRANY" , regex = True)) & (df["Receive Date"] >= filter_date_crany), "FillColor"] = "9BC2E6"
 
-        filter_date_hwin = now - timedelta(days=14)
-        df.loc[(df["FillColor"] == "F4B084") &  (df["Account"].str.contains(r"^HWIN" , regex = True)) & (df["Receive Date"] >= filter_date_hwin), "FillColor"] = "9BC2E6"
+        # filter_date_hwin = now - timedelta(days=14)
+        # df.loc[(df["FillColor"] == "F4B084") &  (df["Account"].str.contains(r"^HWIN" , regex = True)) & (df["Receive Date"] >= filter_date_hwin), "FillColor"] = "9BC2E6"
 
-        filter_date_mtx = now - timedelta(days=7)
-        df.loc[(df["FillColor"] == "F4B084") & (df["Account"].str.contains(r"^MTX" , regex = True)) & (df["Receive Date"] >= filter_date_mtx), "FillColor"] = "9BC2E6"
+        # filter_date_mtx = now - timedelta(days=7)
+        # df.loc[(df["FillColor"] == "F4B084") & (df["Account"].str.contains(r"^MTX" , regex = True)) & (df["Receive Date"] >= filter_date_mtx), "FillColor"] = "9BC2E6"
+
+
+        # Filter Account Num that starts with CRANY (14 Days TAT)
+        df = self.filter_special_account(df, "rush", "CRANY", 14)
+        
+
+        # Filter Account Num that starts with HWIN (14 Days TAT)
+        df = self.filter_special_account(df, "rush", "HWIN", 14)
+
+        # Filter Account Num that starts with HWIN (7 Days TAT)
+        df = self.filter_special_account(df, "rush", "MTX", 7)
+
+        
+        df = self.filter_data_with_tat_6(df, "rush")
 
         df["Receive Date"] = df["Receive Date"].dt.strftime("%d-%b-%y")
 
@@ -826,16 +923,17 @@ class DataPipeline:
             df.loc[i, "Open Job"] = "Yes"
 
 
-        count_of_repgen = len(all_open_jobs) - (len(df.loc[df["Open Job"] == "Yes"])) + 1
+        count_of_repgen = (len(all_open_jobs) + len(df.loc[df["Open Job"] == "Yes"]))   - (len(df.loc[df["Open Job"] == "Yes"]) * 2)
 
         df = df.drop("Open Job", axis = 1)
 
         df.loc[df["Job Number"].str.contains(r"---", regex = True, na=False), "Fill Color"] = "FCE4D6"
 
-        df["Comments (QA)"] = ""
-        comments_qa:list[str] = self.xlookup_function("Job Number", "Comments (QA)", df, yesterday_report)
-        df["Comments (QA)"] = comments_qa
-        df.loc[(df["Days Late"].isna()) & (df["TAT"].isna()), "Comments (QA)"] = ""
+        df["Comments (REPGEN)"] = ""
+        comments_qa:list[str] = self.xlookup_function("Job Number", "Comments (REPGEN)", df, yesterday_report)
+        df["Comments (REPGEN)"] = comments_qa
+        #df.loc[(df["Days Late"].isna()) & (df["TAT"].isna()), "Comments (REPGEN)"] = ""
+        df = df.rename(columns = {"Comments (REPGEN)": "Comments (DT)"})
         
 
         df.to_csv(raw_file_path + "\\repgen.csv", sep = ",", index = False)
@@ -897,8 +995,10 @@ class DataPipeline:
             
         """
         now: datetime = datetime.now()
+        now: datetime = datetime.combine(now.date(), datetime.min.time())
 
         df["Receive Date"] = pd.to_datetime(df["Receive Date"], format="%d-%b-%y")
+
 
         
         df.loc[(df["Fill Color"] == "F4B084") & (df["Comments/ETA"] == "DONE"), "Fill Color"] = "9BC2E6"
@@ -909,17 +1009,33 @@ class DataPipeline:
         df.loc[(df["Fill Color"] == "F4B084") & (df["Account Number"] == "ERACOA" ), "Fill Color"] = "9BC2E6"
 
 
-        filter_date_tat = now - timedelta(days=7)
-        df.loc[(df["Fill Color"] == "F4B084") &  (df["TAT"].isin([6, "6", "6*"])) & (df["Receive Date"] >= filter_date_tat), "Fill Color"] = "9BC2E6"
+        # filter_date_tat = now - timedelta(days=7)
+        # df.loc[(df["Fill Color"] == "F4B084") &  (df["TAT"].isin([6, "6", "6*"])) & (df["Receive Date"] >= filter_date_tat), "Fill Color"] = "9BC2E6"
 
-        filter_date_crany = now - timedelta(days=14)
-        df.loc[(df["Fill Color"] == "F4B084") &  (df["Account Number"].str.contains(r"^CRANY" , regex = True)) & (df["Receive Date"] >= filter_date_crany), "Fill Color"] = "9BC2E6"
+        #filter_date_tat = now - timedelta(days=7)
+        #df.loc[(df["Fill Color"] == "F4B084") &  (df["TAT"].isin([6, "6", "6*"])) & (df["Receive Date"] >= filter_date_tat), "Fill Color"] = "9BC2E6"
 
-        filter_date_hwin = now - timedelta(days=14)
-        df.loc[(df["Fill Color"] == "F4B084") &  (df["Account Number"].str.contains(r"^HWIN" , regex = True)) & (df["Receive Date"] >= filter_date_hwin), "Fill Color"] = "9BC2E6"
 
-        filter_date_mtx = now - timedelta(days=7)
-        df.loc[(df["Fill Color"] == "F4B084") & (df["Account Number"].str.contains(r"^MTX" , regex = True)) & (df["Receive Date"] >= filter_date_mtx), "Fill Color"] = "9BC2E6"
+        # filter_date_crany = now - timedelta(days=14)
+        # df.loc[(df["Fill Color"] == "F4B084") &  (df["Account Number"].str.contains(r"^CRANY" , regex = True)) & (df["Receive Date"] >= filter_date_crany), "Fill Color"] = "9BC2E6"
+
+        # filter_date_hwin = now - timedelta(days=14)
+        # df.loc[(df["Fill Color"] == "F4B084") &  (df["Account Number"].str.contains(r"^HWIN" , regex = True)) & (df["Receive Date"] >= filter_date_hwin), "Fill Color"] = "9BC2E6"
+
+        # filter_date_mtx = now - timedelta(days=7)
+        # df.loc[(df["Fill Color"] == "F4B084") & (df["Account Number"].str.contains(r"^MTX" , regex = True)) & (df["Receive Date"] >= filter_date_mtx), "Fill Color"] = "9BC2E6"
+
+        # Filter Account Num that starts with CRANY (14 Days TAT)
+        df = self.filter_special_account(df, "late", "CRANY", 14)
+        
+
+        # Filter Account Num that starts with HWIN (14 Days TAT)
+        df = self.filter_special_account(df, "late", "HWIN", 14)
+
+        # Filter Account Num that starts with HWIN (7 Days TAT)
+        df = self.filter_special_account(df, "late", "MTX", 7)
+
+        df = self.filter_data_with_tat_6(df, "late")
 
         df["Receive Date"] = df["Receive Date"].dt.strftime("%d-%b-%y")
 
@@ -966,6 +1082,10 @@ class DataPipeline:
 
             # Add a column (Font) to change the font in excel based on tat
             df.loc[df["TAT"].isin(["1", "2", "3", "4", "5", "1*", "2*", "3*", "4*", "5*"]), "Font"] = "RedAndBold"
+
+            if site == "Dayton":
+                df.loc[df["TAT"].isin(["6*"]), "Font"] = "PurpleAndBold"
+            
             df.loc[df["TAT"].isin(["6"]), "Font"] = "PurpleAndBold"
 
             df["Font"].fillna("default", inplace=True)
@@ -982,7 +1102,7 @@ class DataPipeline:
             # Remove DONE in STAT column
             df = df.loc[df['STAT'] != "DONE"]
 
-            # Remove Blanks in DEPT abd do not include the lab data in job number
+            # Remove Blanks in DEPT and do not include the lab data in job number
             df = df.loc[~(df["DEPT"].isna() & ~df["Job Number"].str.contains(r"^LAB Data:", regex=True))]
             df = df.loc[~(df["Job Number"].str.contains("---"))]
 
@@ -1002,8 +1122,6 @@ class DataPipeline:
 
             # Dayton additional Filter
             if site == "Dayton":
-                df.loc[df["TAT"].isin(["6*"]), "Font"] = "PurpleAndBold"
-
                 df= self.additioonal_filter_for_late(df)
 
 
@@ -1025,9 +1143,67 @@ class DataPipeline:
             df.to_csv(file, sep="\t", index=False)
 
 
+
             return last_column
 
-    
+
+    ## LANGAN Cleaning
+    @staticmethod
+    def clean_langan_data(df: pd.DataFrame) -> pd.DataFrame:
+
+        """This function will clean the LANGAN Data. 
+            Only input the neccessary information on excel
+        """
+        trim = df.loc[df["Job Number"].str.contains(r"^Total Late", regex=True, na=False)].index[0] - 1
+
+        last_colums = df[trim:]
+        df: pd.DataFrame = df[:trim]
+
+
+        data_langan = df.loc[(df["Account Number"].str.contains(r"^LANGAN", regex=True, case= False)) & (df["Project Description"].str.contains(r"^South Brooklyn", regex=True, case= False))].reset_index().to_dict(orient="records")
+
+        dont_remove:list[int] = []
+
+        for data in data_langan:
+
+            index_num:int = data["index"]   
+
+
+            if not index_num in dont_remove:
+                for index, i in enumerate(range(index_num + 1, len(df) + 1)):
+
+                    try:
+                        langan_data = df.loc[df.index == index_num + index ].reset_index().to_dict(orient = "records")
+                        row_data:dict = langan_data[0]
+                        index_of_data:int = row_data["index"]
+                        job_number:str = row_data["Job Number"]
+                        account_number_value:str = row_data["Account Number"]
+                        project_description_value:str = row_data["Project Description"]
+
+
+                        if isinstance(account_number_value, str) and account_number_value.lower() == "langan" and project_description_value == "South Brooklyn Marine Terminal, Brooklyn, NY":
+                            dont_remove.append(index_of_data)
+                        elif job_number.startswith("LAB"):
+                            dont_remove.append(index_num)
+                            dont_remove.append(index_of_data)
+                            break
+                        else:
+                            break
+                                                                                                                                                                                                                    
+                    except Exception as e:
+                        pass
+
+
+        df = df.loc[df.index.isin(dont_remove)]
+
+        df = pd.concat([df, last_colums], axis= 0)
+        
+        # Improve!!!!!!!!!
+        df = df.reset_index()
+        df = df.drop("index", axis = 1)
+
+        return df
+            
 
             
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from data_pipeline import DataPipeline
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, numbers, Font, PatternFill
@@ -124,11 +124,24 @@ class ExcelModule:
 
                 
 
-
-    def process_automation_worklist(self, ws, columns:list[str], data:list[tuple]) -> bool:
+    
+    def process_automation_worklist(self, ws, df:pd.DataFrame) -> bool:
         """
             Start the automation of copy values from excel to excel on worklist data
         """
+
+        
+        max_column = ws.max_column
+        last_col_letter = ws.cell(row=1, column=max_column).column_letter
+        ws.auto_filter.ref = f"A1:{last_col_letter}1"
+
+        #ws.auto_filter.ref = f"A1:N1"
+
+        df_to_dict: list[dict] = df.to_dict(orient="records")
+        columns: list[str] = tuple(df_to_dict[0].keys())
+        data: list[tuple] = [tuple(data.values()) for data in df_to_dict]
+        data.insert(0, columns)
+
         try:
             for row in range(1, len(data) + 1):
                 ws.row_dimensions[row].height = self.worklist_row_height
@@ -399,6 +412,58 @@ class ExcelModule:
 
 
 
+    def process_additional_late_insert(self, df, ws, report_name:str) -> None:
+        """Inserting the additional late from every site"""
+
+
+        df = df.fillna(" ")
+
+        trim = df.loc[df["Job Number"].str.contains(r"^Total Late", regex=True, na=False)].index[0] - 1
+        last_column_range: int = len(df[trim:])
+
+
+
+
+        rows_data: list[dict] = df.to_dict(orient = "records")
+
+        columns: list[str] = list(df.columns)
+        rows_data: list[tuple] = [tuple(rows.values()) for rows in rows_data]
+
+        rows_data.insert(0, columns)
+
+
+        for row in range(1, len(rows_data) + 1):
+            ws.row_dimensions[row].height = self.late_row_height
+            for col in range(len(columns)):
+                char: str = get_column_letter(col + 1)
+                cell_name: str = char + str(row)
+                cell_value:str = rows_data[row - 1][col]
+
+
+                if char != "A":
+                    ws[cell_name].alignment = Alignment(horizontal="center", vertical="center")
+                try:
+                    ws[cell_name] = int(cell_value)
+                except Exception as e:
+                    ws[cell_name] = str(cell_value)
+            
+        
+        length_of_data: int = len(df[:trim])
+
+
+        if length_of_data > 0:
+            max_column:int = ws.max_column
+            last_col_letter:str = ws.cell(row=1, column=max_column).column_letter
+            table_rush_range:str = f"A1:{last_col_letter}{len(rows_data) - last_column_range}"
+
+            table_ref = Table(displayName=f"Late_Table_{report_name}", ref=table_rush_range)
+
+            style_table = TableStyleInfo(name="TableStyleMedium3", showRowStripes=True)
+
+            table_ref.tableStyleInfo = style_table
+            
+            ws.add_table(table_ref)
+
 
     def insert_data_from_template(self, 
                                   files: list[str],
@@ -423,16 +488,20 @@ class ExcelModule:
 
                 )
                 ws = wb[report_type]
-                
-                max_column = ws.max_column
-                last_col_letter = ws.cell(row=1, column=max_column).column_letter
-                ws.auto_filter.ref = f"A1:{last_col_letter}1"
 
-                df_to_dict: list[dict] = df.to_dict(orient="records")
-                columns: list[str] = tuple(df_to_dict[0].keys())
-                data: list[tuple] = [tuple(data.values()) for data in df_to_dict]
-                data.insert(0, columns)
-                isFinished:bool = self.process_automation_worklist(ws, columns=columns, data=data)
+                # max_column = ws.max_column
+                # last_col_letter = ws.cell(row=1, column=max_column).column_letter
+                # #ws.auto_filter.ref = f"A1:{last_col_letter}1"
+
+
+                # ws.auto_filter.ref = f"A1:N1"
+
+                # df_to_dict: list[dict] = df.to_dict(orient="records")
+                # columns: list[str] = tuple(df_to_dict[0].keys())
+                # data: list[tuple] = [tuple(data.values()) for data in df_to_dict]
+                # data.insert(0, columns)
+                
+                isFinished:bool = self.process_automation_worklist(ws, df)
 
                 wb.save(to_excel)
 
@@ -467,6 +536,7 @@ class ExcelModule:
 
                 last_row_num_of_data = self.process_automation_late_repgen(ws, df, site)
                 # Still on Testing. Do not remove the try if not yet stable
+
                 try:
                     self.adding_last_column_on_rush(ws, last_three_columns, last_row_num_of_data, 4)
                 except Exception as e:
@@ -498,6 +568,26 @@ class ExcelModule:
                 ws = wb[report_type]
                 self.process_automation_worklist_dayton(ws, df)
                 wb.save(to_excel)
+
+            elif automation_type == 6:
+
+                df = pd.read_csv(file, sep = "\t", engine = "python")
+
+
+                report_type: str = site.get(os.path.split(file)[-1].split("_")[1], "")
+
+
+                if report_type == "LANGAN_SBMT":
+                    df = DataPipeline.clean_langan_data(df)
+
+
+                ws = wb[report_type]
+                self.process_additional_late_insert(df, ws, report_type)
+
+                wb.save(to_excel)
+
+
+
 
         wb.close()
 

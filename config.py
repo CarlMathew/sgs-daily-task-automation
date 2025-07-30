@@ -34,6 +34,11 @@ class Config:
     macro_hoteky_dayton_late:str = "LateDayton"
 
 
+    macro_additional_late_dayton = "Additional_Late_Dayton"
+    macro_additional_late_orlando = "Additional_Late_Orlando"
+    macro_additional_late_wheat_ridge = "Additional_Late_WheatRidge"
+
+
 
     class Scott(FileModule):
         def __init__(self):
@@ -47,7 +52,7 @@ class Config:
             self.yesterday_report_path:str = self.get_data_from_folder(self.yesterday_report)[-1]
             self.counting_data: str = "Daily Count (Report)\\Scott\\WorkList_Count (Scott).csv"
             self.rush_counting_data: str = "Daily Count (Report)\\Scott\\Rush_Count (Scott).csv"
-            self.save_name_file:str = f"data\\Scott\\report\\Scott_Late_{datetime.now().strftime("%y%m%d")} remove.xlsx"
+            self.save_name_file:str = f"data\\Scott\\report\\Scott_Late_{datetime.now().strftime("%y%m%d")}.xlsx"
             self.worklist_report_names: list[str]= ["aaall", "ext-nd", "gcs", "gcv", "gnallnd", "hgall", "mss", "msvoa"]
             self.reported_report = self.get_data_from_folder("\\data\\Scott\\report\\")
             self.sharepoint_url = "/sites/ph-ehs-ofs/EHS/GBS EHS US/8 References/US QA Coordinator/Daily Dashboard and Late Report/Scott Dashboard and Late Report/Daily Late Report"
@@ -68,7 +73,7 @@ class Config:
             self.yesterday_report_path:str = self.get_data_from_folder(self.yesterday_report)[-1]
             self.counting_data: str = "Daily Count (Report)\\Wheat Ridge\\WorkList_Count (Wheat Ridge).csv"
             self.rush_counting_data: str = "Daily Count (Report)\\Wheat Ridge\\Rush_Count (Wheat Ridge).csv"
-            self.save_name_file:str = f"data\\Wheat Ridge\\report\\Wheat_Ridge_Late_{datetime.now().strftime("%y%m%d")} remove.xlsx"
+            self.save_name_file:str = f"data\\Wheat Ridge\\report\\WheatRidge_Late_{datetime.now().strftime("%y%m%d")}.xlsx"
             self.worklist_report_names: list[str]= ["aaallnd", "orgprep", "gcs", "gcvoa", "gnall", "hgall", "mss", "msvoa"]
             self.reported_report = self.get_data_from_folder("\\data\\Wheat Ridge\\report\\")
             self.sharepoint_url = "/sites/ph-ehs-ofs/EHS/GBS EHS US/8 References/US QA Coordinator/Daily Dashboard and Late Report/WheatRidge Dashboard and Late Report/Daily Late Report"
@@ -88,7 +93,7 @@ class Config:
             self.yesterday_report_path:str = self.get_data_from_folder(self.yesterday_report)[-1]
             self.counting_data: str = "Daily Count (Report)\\Orlando\\WorkList_Count (Orlando).csv"
             self.rush_counting_data: str = "Daily Count (Report)\\Orlando\\Rush_Count (Orlando).csv"
-            self.save_name_file:str = f"data\\Orlando\\report\\Orlando_Late_{datetime.now().strftime("%y%m%d")} remove.xlsx"
+            self.save_name_file:str = f"data\\Orlando\\report\\Orlando_Late_{datetime.now().strftime("%y%m%d")}.xlsx"
             self.worklist_report_names: list[str]= ["aaallnd", "extnd", "gcmsnd", "gcnd", "gcvnd", "gnallnd", "hg", "lc-qqq", "lc-qqqprep", "msvnd"]
             self.reported_report = self.get_data_from_folder("\\data\\Orlando\\report\\")
             self.sharepoint_url = "/sites/ph-ehs-ofs/EHS/GBS EHS US/8 References/US QA Coordinator/Daily Dashboard and Late Report/WheatRidge Dashboard and Late Report/Daily Late Report"
@@ -108,9 +113,10 @@ class Config:
             self.yesterday_report_path:str = self.get_data_from_folder(self.yesterday_report)[-1]
             self.counting_data: str = "Daily Count (Report)\\Dayton\\WorkList_Count (Dayton).csv"
             self.rush_counting_data: str = "Daily Count (Report)\\Dayton\\Rush_Count (Dayton).csv"
-            self.save_name_file:str = f"data\\Dayton\\report\\Dayton_Late_{datetime.now().strftime("%y%m%d")} remove.xlsx"
+            self.save_name_file:str = f"data\\Dayton\\report\\Dayton_Late_{datetime.now().strftime("%y%m%d")}.xlsx"
             self.worklist_report_names: list[str]= ["aaallnd", "extlcms", "ext-nd", "gcair", "gcs", "gcvoa", "gnallnd", "hgall", "lcmspfas", "msair", "mss", "msvoa"]
             self.reported_report = self.get_data_from_folder("\\data\\Dayton\\report\\")
             self.sharepoint_url = "/sites/ph-ehs-ofs/EHS/GBS EHS US/8 References/US QA Coordinator/Daily Dashboard and Late Report/WheatRidge Dashboard and Late Report/Daily Late Report"
 
             self.archived_path: str = ""
+            
