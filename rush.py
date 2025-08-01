@@ -24,35 +24,35 @@ def Rush() -> None:
 
         for site in sites:
             # ---------------------------------------------------------------------------SCOTT AUTOMATION----------------------------------------------------------------------------------------#
-            if site == "Scott":
-                logger.info(f"Automating the rush report. Site: {site}")
-                files:list[str] = file_management.get_data_from_folder(Config.Scott().raw_file_path)
+            # if site == "Scott":
+            #     logger.info(f"Automating the rush report. Site: {site}")
+            #     files:list[str] = file_management.get_data_from_folder(Config.Scott().raw_file_path)
 
                 
-                logger.info(f"Validating Files")
-                validated_files:list[str] =  ValidationOfFiles.validate_rush_file(files)
+            #     logger.info(f"Validating Files")
+            #     validated_files:list[str] =  ValidationOfFiles.validate_rush_file(files)
 
-                if len(validated_files) == 1:
+            #     if len(validated_files) == 1:
                     
-                    logger.info("Running Macro Rush...")
-                    RunMacro(validated_files, Config.macro_path, Config.macro_hotkey_rush)
+            #         logger.info("Running Macro Rush...")
+            #         RunMacro(validated_files, Config.macro_path, Config.macro_hotkey_rush)
 
-                    logger.info("Cleaning the rush raw files. (Data Pipeline is running...)")
-                    last_three_columns = pipeline.pipeline_for_rush(validated_files, Config.Scott().yesterday_report_path, Config.Scott().qa_samples, site, Config.Scott().rush_counting_data)
+            #         logger.info("Cleaning the rush raw files. (Data Pipeline is running...)")
+            #         last_three_columns = pipeline.pipeline_for_rush(validated_files, Config.Scott().yesterday_report_path, Config.Scott().qa_samples, site, Config.Scott().rush_counting_data)
 
 
-                    logger.info("Inserting the data into the template...")
-                    excel_module.insert_data_from_template(validated_files, Config.Scott().save_name_file, Config.Scott().save_name_file, 2, "RUSH_PRIORITY",last_three_columns)
+            #         logger.info("Inserting the data into the template...")
+            #         excel_module.insert_data_from_template(validated_files, Config.Scott().save_name_file, Config.Scott().save_name_file, 2, "RUSH_PRIORITY",last_three_columns)
                                         
-                    logger.info("Running the macro for the xloopup rush")
-                    RunMacro(Config.Scott().reported_report, Config.macro_path_daily_task, Config.macro_hotkey_scott_rush)
+            #         logger.info("Running the macro for the xloopup rush")
+            #         RunMacro(Config.Scott().reported_report, Config.macro_path_daily_task, Config.macro_hotkey_scott_rush)
                     
 
-                    logger.info(f"Automation Success (Rush). Done automating site {site}. Please checkt the files for validation.")
+            #         logger.info(f"Automation Success (Rush). Done automating site {site}. Please checkt the files for validation.")
 
 
-                elif len(validated_files) == 0:
-                    logger.warning(f"No Rush Files found in the folder: {site}")
+            #     elif len(validated_files) == 0:
+            #         logger.warning(f"No Rush Files found in the folder: {site}")
 
             # ---------------------------------------------------------------------------WHEAT RIDGE AUTOMATION----------------------------------------------------------------------------------------#
 
@@ -89,32 +89,32 @@ def Rush() -> None:
 
             # ---------------------------------------------------------------------------ORLANDO AUTOMATION----------------------------------------------------------------------------------------#
 
-            if site == "Orlando":
-                logger.info(f"Automating the rush report. Site: {site}")
-                files:list[str] = file_management.get_data_from_folder(Config.Orlando().raw_file_path)
+            # if site == "Orlando":
+            #     logger.info(f"Automating the rush report. Site: {site}")
+            #     files:list[str] = file_management.get_data_from_folder(Config.Orlando().raw_file_path)
 
-                logger.info(f"Validating Files")
-                validated_files:list[str] =  ValidationOfFiles.validate_rush_file(files)
+            #     logger.info(f"Validating Files")
+            #     validated_files:list[str] =  ValidationOfFiles.validate_rush_file(files)
 
 
-                if len(validated_files) == 1:
+            #     if len(validated_files) == 1:
 
-                    logger.info("Running Macro Rush...")
-                    RunMacro(validated_files, Config.macro_path, Config.macro_hotkey_rush)
+            #         logger.info("Running Macro Rush...")
+            #         RunMacro(validated_files, Config.macro_path, Config.macro_hotkey_rush)
 
-                    logger.info("Cleaning the rush raw files. (Data Pipeline is running...)")
-                    last_three_columns = pipeline.pipeline_for_rush(validated_files, Config.Orlando().yesterday_report_path, Config.Orlando().qa_samples, site, Config.Orlando().rush_counting_data, Config.Orlando().save_name_file)
+            #         logger.info("Cleaning the rush raw files. (Data Pipeline is running...)")
+            #         last_three_columns = pipeline.pipeline_for_rush(validated_files, Config.Orlando().yesterday_report_path, Config.Orlando().qa_samples, site, Config.Orlando().rush_counting_data, Config.Orlando().save_name_file)
 
-                    logger.info("Inserting the data into the template...")
-                    excel_module.insert_data_from_template(validated_files, Config.Orlando().save_name_file, Config.Orlando().save_name_file, 2, "RUSH_PRIORITY", last_three_columns)
+            #         logger.info("Inserting the data into the template...")
+            #         excel_module.insert_data_from_template(validated_files, Config.Orlando().save_name_file, Config.Orlando().save_name_file, 2, "RUSH_PRIORITY", last_three_columns)
 
-                    logger.info("Running the macro for the xloopup rush")
-                    RunMacro(Config.Orlando().reported_report, Config.macro_path_daily_task, Config.macro_hotkey_orlando_rush)
+            #         logger.info("Running the macro for the xloopup rush")
+            #         RunMacro(Config.Orlando().reported_report, Config.macro_path_daily_task, Config.macro_hotkey_orlando_rush)
 
-                    logger.info(f"Automation Success (Rush). Done automating site {site}. Please checkt the files for validation.")
+            #         logger.info(f"Automation Success (Rush). Done automating site {site}. Please checkt the files for validation.")
 
-                elif len(validated_files) == 0:
-                    logger.warning(f"No Rush Files found in the folder: {site}")
+            #     elif len(validated_files) == 0:
+            #         logger.warning(f"No Rush Files found in the folder: {site}")
 
             
             # ---------------------------------------------------------------------------DAYTON AUTOMATION----------------------------------------------------------------------------------------#

@@ -14,7 +14,7 @@ def Additional_Late() -> None:
 
     try:
         file_management = FileModule()
-        pipeline = DataPipeline()
+        # pipeline = DataPipeline()
         worklist = WorklistDictionary()
         excel_module = ExcelModule()
         sites = ["Wheat Ridge", "Orlando", 'Dayton']
@@ -63,39 +63,39 @@ def Additional_Late() -> None:
 
             # -------------------------------------------------Orlando Automation----------------------------------------------------------------------------------------------------------------------#
 
-            if site == "Orlando":
-                logger.info(f"Automating the additional late report. Site: {site}")
-                files: list[str] = file_management.get_data_from_folder(Config.Orlando().raw_file_path)
+            # if site == "Orlando":
+            #     logger.info(f"Automating the additional late report. Site: {site}")
+            #     files: list[str] = file_management.get_data_from_folder(Config.Orlando().raw_file_path)
 
-                logger.info("Validating Files")
-                validated_data:list[str] = ValidationOfFiles.validate_late_file(files, 2)
+            #     logger.info("Validating Files")
+            #     validated_data:list[str] = ValidationOfFiles.validate_late_file(files, 2)
 
-                if len(validated_data) > 0:
+            #     if len(validated_data) > 0:
 
 
-                    logger.info("Running Macro Late...")
-                    RunMacro(validated_data, Config.macro_path, Config.macro_hotkey_late)
+            #         logger.info("Running Macro Late...")
+            #         RunMacro(validated_data, Config.macro_path, Config.macro_hotkey_late)
 
-                    # logger.info("Cleaning the late raw files. (Data Pipeline is running...)")
-                    # last_column = pipeline.pipeline_for_late(validated_data, Config.Dayton().yesterday_report_path, Config.Dayton().qa_samples, site, Config.Dayton().raw_file_path_V2)
+            #         # logger.info("Cleaning the late raw files. (Data Pipeline is running...)")
+            #         # last_column = pipeline.pipeline_for_late(validated_data, Config.Dayton().yesterday_report_path, Config.Dayton().qa_samples, site, Config.Dayton().raw_file_path_V2)
 
-                    logger.info("Inserting the data into the template...")
-                    excel_module.insert_data_from_template(validated_data, Config.Orlando().save_name_file, Config.Orlando().save_name_file, 6, worklist.Orlando_Late)
+            #         logger.info("Inserting the data into the template...")
+            #         excel_module.insert_data_from_template(validated_data, Config.Orlando().save_name_file, Config.Orlando().save_name_file, 6, worklist.Orlando_Late)
                     
-                    # # Get the generated csv to insert for repgen
-                    # files_for_repgen = file_management.get_data_from_folder(Config.Dayton().raw_file_path)
-                    # validate_repgen_data: list[str] = ValidationOfFiles.validate_repgen_file(files_for_repgen)
+            #         # # Get the generated csv to insert for repgen
+            #         # files_for_repgen = file_management.get_data_from_folder(Config.Dayton().raw_file_path)
+            #         # validate_repgen_data: list[str] = ValidationOfFiles.validate_repgen_file(files_for_repgen)
 
-                    # logger.info("Inserting the data into the template (REPGEN)")
-                    # excel_module.insert_data_from_template(validate_repgen_data, Config.Dayton().save_name_file, Config.Dayton().save_name_file, 4, "REPGEN", last_column)
+            #         # logger.info("Inserting the data into the template (REPGEN)")
+            #         # excel_module.insert_data_from_template(validate_repgen_data, Config.Dayton().save_name_file, Config.Dayton().save_name_file, 4, "REPGEN", last_column)
 
-                    logger.info("Running the macro for the xloopup additional late")
-                    RunMacro(Config.Orlando().reported_report, Config.macro_path_daily_task, Config.macro_additional_late_orlando)
+            #         logger.info("Running the macro for the xloopup additional late")
+            #         RunMacro(Config.Orlando().reported_report, Config.macro_path_daily_task, Config.macro_additional_late_orlando)
 
-                    logger.info(f"Automation Success (Late V2). Done automating site {site}. Please checkt the files for validation.")
+            #         logger.info(f"Automation Success (Late V2). Done automating site {site}. Please checkt the files for validation.")
 
-                elif len(validated_data) == 0:
-                    logger.warning("No late data found")
+            #     elif len(validated_data) == 0:
+            #         logger.warning("No late data found")
 
             # -------------------------------------------------Dayton Automation----------------------------------------------------------------------------------------------------------------------#
 
