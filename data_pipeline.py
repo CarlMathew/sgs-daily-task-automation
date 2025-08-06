@@ -389,7 +389,11 @@ class DataPipeline:
 
                 # Added Column in Scott (ORGPREP), Spike
                 if main_site == "Scott" and report_type == "ORGPREP":
-                    df["Spikes added"] = " "
+                    df["Spike added"] = ""
+                    spike_added:list[str] = self.xlookup_function("Samplenum", "Spike added", df, yesterday_report)
+                    df["Spike added"] = spike_added
+
+
 
                 # Format the comments\eta of genchem tab
                 if report_type == "GENCHEM":
@@ -407,7 +411,7 @@ class DataPipeline:
 
                 # save to csv
                 df.to_csv(file, sep="\t", index=False)
-                
+
     
     ######### Rush Pipeline and It's Function #########
 
@@ -1053,7 +1057,8 @@ class DataPipeline:
                           previous_report: str,
                           qa_samples:str,
                           site: str,
-                          raw_file_path: str
+                          raw_file_path: str,
+                          current_report: str = ""
                           ) -> pd.DataFrame:
         
         
@@ -1132,6 +1137,8 @@ class DataPipeline:
             df["Comments/ETA"] = comments_eta
             df["Comments/ETA"] = df["Comments/ETA"].astype(str)
 
+
+
             # Dayton additional Filter
             if site == "Dayton":
                 df= self.additioonal_filter_for_late(df)
@@ -1140,11 +1147,24 @@ class DataPipeline:
             # Count of late in tab and late > 3
             self.count_samples_in_late_v2(df, maximum_number)
 
-            # Xlookup from the previous report
+           
+
+           
+            #Modified: Xlookup the comments to rush prio tab
+            # current_report = pd.read_excel(current_report, sheet_name="RUSH_PRIORITY")
+            # df_late = df.loc[( df["Fill Color"] == "F4B084") & (df["TAT"].isin([1, "1", "1*", 2, "2", "2*", 3, "3", "3*", 4, "4", "4*", 5, "5", "5*", 6, "6", "6*", 13, "13", "13*"]))]
+            # comments_eta: list[str] = self.xlookup_function("Job Number", "Comments/ETA", df, current_report)
+
+           
+
+            # df["Comments/ETA"] = comments_eta
+            # df["Comments/ETA"] = df["Comments/ETA"].astype(str)
 
 
             # Add the site in the datframe
             df = self.add_report_type_in_df(df, site)
+
+
 
             # Additional Cleaning
             df.loc[(df["Days Late"].isna()) & (df["TAT"].isna()), "Fill Color"] = None

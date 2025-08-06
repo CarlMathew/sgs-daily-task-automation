@@ -38,7 +38,7 @@ def Late() -> None:
                     RunMacro(validated_data, Config.macro_path, Config.macro_hotkey_late)
 
                     logger.info("Cleaning the late raw files. (Data Pipeline is running...)")
-                    last_columns = pipeline.pipeline_for_late(validated_data, Config.Scott().yesterday_report_path, Config.Scott().qa_samples, site, Config.Scott().raw_file_path_V2)
+                    last_columns = pipeline.pipeline_for_late(validated_data, Config.Scott().yesterday_report_path, Config.Scott().qa_samples, site, Config.Scott().raw_file_path_V2, Config.Scott().save_name_file)
 
                     logger.info("Inserting the data into the template...")
                     excel_module.insert_data_from_template(validated_data, Config.Scott().save_name_file, Config.Scott().save_name_file, 3, "LATE", last_columns)
@@ -77,7 +77,7 @@ def Late() -> None:
                     RunMacro(validated_data, Config.macro_path, Config.macro_hotkey_late)
 
                     logger.info("Cleaning the late raw files. (Data Pipeline is running...)")
-                    last_columns = pipeline.pipeline_for_late(validated_data, Config.Wheat_Ridge().yesterday_report_path, Config.Wheat_Ridge().qa_samples, site, Config.Wheat_Ridge().raw_file_path_V2)
+                    last_columns = pipeline.pipeline_for_late(validated_data, Config.Wheat_Ridge().yesterday_report_path, Config.Wheat_Ridge().qa_samples, site, Config.Wheat_Ridge().raw_file_path_V2, Config.Wheat_Ridge().save_name_file)
 
                     logger.info("Inserting the data into the template...")
                     excel_module.insert_data_from_template(validated_data, Config.Wheat_Ridge().save_name_file, Config.Wheat_Ridge().save_name_file, 3, "LATE", last_columns)
@@ -114,7 +114,7 @@ def Late() -> None:
                     RunMacro(validated_data, Config.macro_path, Config.macro_hotkey_late)
 
                     logger.info("Cleaning the late raw files. (Data Pipeline is running...)")
-                    last_columns = pipeline.pipeline_for_late(validated_data, Config.Orlando().yesterday_report_path, Config.Orlando().qa_samples, site, Config.Orlando().raw_file_path_V2)
+                    last_columns = pipeline.pipeline_for_late(validated_data, Config.Orlando().yesterday_report_path, Config.Orlando().qa_samples, site, Config.Orlando().raw_file_path_V2, Config.Orlando().save_name_file)
 
                     logger.info("Inserting the data into the template...")
                     excel_module.insert_data_from_template(validated_data, Config.Orlando().save_name_file, Config.Orlando().save_name_file, 3, "LATE", last_columns)
@@ -149,7 +149,7 @@ def Late() -> None:
                     RunMacro(validated_data, Config.macro_path, Config.macro_hotkey_late)
 
                     logger.info("Cleaning the late raw files. (Data Pipeline is running...)")
-                    last_column = pipeline.pipeline_for_late(validated_data, Config.Dayton().yesterday_report_path, Config.Dayton().qa_samples, site, Config.Dayton().raw_file_path_V2)
+                    last_column = pipeline.pipeline_for_late(validated_data, Config.Dayton().yesterday_report_path, Config.Dayton().qa_samples, site, Config.Dayton().raw_file_path_V2, Config.Dayton().save_name_file)
 
                     logger.info("Inserting the data into the template...")
                     excel_module.insert_data_from_template(validated_data, Config.Dayton().save_name_file, Config.Dayton().save_name_file, 3, "LATE", last_column)
