@@ -189,13 +189,13 @@ class ExcelModule:
 
     def process_automation_rush(self, ws, df) -> int:
         """Start the automation of copy values from excel to excel on rush data"""
-        font_and_cell_color_df: pd.DataFrame = df[["Font", "FillColor"]]
+        # font_and_cell_color_df: pd.DataFrame = df[["Font", "FillColor"]]
         remaining_columns_df: pd.DataFrame = df.drop(columns = ["Font", "FillColor"])
 
        
         remaining_columns_df["Comments/ETA"] = remaining_columns_df["Comments/ETA"].astype(str)
 
-        font_and_cell_color_dict: list[dict] = font_and_cell_color_df.to_dict(orient="records")
+        # font_and_cell_color_dict: list[dict] = font_and_cell_color_df.to_dict(orient="records")
         remaining_columns_dict: list[dict] = remaining_columns_df.to_dict(orient = "records")
         
         self.change_style_rush(ws, df)

@@ -60,3 +60,21 @@ def setup_late_logger(name: str) -> logging.Logger:
     
 
     return logging.getLogger(name)
+
+def setup_database_logger(name: str) -> logging.Logger:
+    """
+        Logger for database
+        Keeps records of log on database
+    """
+
+    logging.basicConfig(
+        level=logging.INFO, 
+        format= "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[
+            logging.FileHandler("logs\\database.log"),
+            logging.StreamHandler()
+
+        ]
+    )
+
+    return logging.getLogger(name)

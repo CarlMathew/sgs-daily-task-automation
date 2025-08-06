@@ -39,9 +39,13 @@ class DataPipeline:
                     data.append(str(yesterday_comment[0]))
 
         return data
+    
+
         
     
     ######### Worklist Pipeline and It's Function #########
+
+
 
     def count_report_worklist(self, df:pd.DataFrame, excel:csv, report_type: str) -> pd.DataFrame:
         """Count all of the report then store it on csv file. Then sort the due date from oldest to newest"""
@@ -89,7 +93,7 @@ class DataPipeline:
         else:
             df["Due Date"] = df["Due Date"].dt.strftime("%d-%b-%y")
 
-        return df
+        return df, count_all_of_less_than_due_date, count_all_of_the_data
     
     def remove_lc_from_orgprep(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -332,6 +336,7 @@ class DataPipeline:
             print("Please download the previous report to continue")
         
         else:
+
             #Open each file and store it on dataframe
             for file in files:
                 # Import All Reports to DataFrame
@@ -376,8 +381,10 @@ class DataPipeline:
                     df, total_late = self.reason_filter_for_dayton(df, excel_report_path, report_type)
 
                 # Save the count of late to a csv
-                elif main_site == "Others":
-                    df = self.count_report_worklist(df, excel_report_path, report_type)    
+                else:
+                    df, late_count, total_data_count = self.count_report_worklist(df, excel_report_path, report_type)  
+                    # worklist_data[""]
+                    
 
 
                 # Added Column in Scott (ORGPREP), Spike
@@ -400,7 +407,7 @@ class DataPipeline:
 
                 # save to csv
                 df.to_csv(file, sep="\t", index=False)
-    
+                
     
     ######### Rush Pipeline and It's Function #########
 
@@ -928,12 +935,12 @@ class DataPipeline:
         df = df.drop("Open Job", axis = 1)
 
         df.loc[df["Job Number"].str.contains(r"---", regex = True, na=False), "Fill Color"] = "FCE4D6"
-
-        df["Comments (REPGEN)"] = ""
-        comments_qa:list[str] = self.xlookup_function("Job Number", "Comments (REPGEN)", df, yesterday_report)
-        df["Comments (REPGEN)"] = comments_qa
+        repgen_column_name: str = Utils.get_repgen_columns_in_excel(yesterday_report)
+        df[repgen_column_name] = ""
+        comments_qa:list[str] = self.xlookup_function("Job Number", repgen_column_name, df, yesterday_report)
+        df[repgen_column_name] = comments_qa
         #df.loc[(df["Days Late"].isna()) & (df["TAT"].isna()), "Comments (REPGEN)"] = ""
-        df = df.rename(columns = {"Comments (REPGEN)": "Comments (DT)"})
+        df = df.rename(columns = {repgen_column_name: "Comments (DT)"})
         
 
         df.to_csv(raw_file_path + "\\repgen.csv", sep = ",", index = False)
@@ -1111,11 +1118,16 @@ class DataPipeline:
             df.loc[(df["STAT"] == "SUB") & (df["Fill Color"] == "F4B084"), "Fill Color"] = "9BC2E6"
             df.loc[ (df["Job Number"].str.contains(r"X$", regex=True)) & (df["Fill Color"] == "F4B084"), "Fill Color"] = "9BC2E6"
 
+
+            # now: datetime = datetime.now() - timedelta(days=1)
+            # date_format_for_tab:str = now.strftime("%y%m%d")
+            #yesterday_report = pd.read_excel(previous_report, sheet_name=f"{site}_Late_{date_format_for_tab}")
+
+
             # Add the comments/ETA (join today report to yesterday_report)
             df["Comments/ETA"] = ''
-            now: datetime = datetime.now() - timedelta(days=1)
-            date_format_for_tab:str = now.strftime("%y%m%d")
-            yesterday_report = pd.read_excel(previous_report, sheet_name=f"{site}_Late_{date_format_for_tab}")
+            name_of_late_tab: str =  Utils.get_late_tab_name_in_excel(previous_report)
+            yesterday_report = pd.read_excel(previous_report, sheet_name=name_of_late_tab)
             comments_eta: list[str] = self.xlookup_function("Job Number", "Comments/ETA", df, yesterday_report)
             df["Comments/ETA"] = comments_eta
             df["Comments/ETA"] = df["Comments/ETA"].astype(str)
@@ -1151,7 +1163,8 @@ class DataPipeline:
     @staticmethod
     def clean_langan_data(df: pd.DataFrame) -> pd.DataFrame:
 
-        """This function will clean the LANGAN Data. 
+        """
+            This function will clean the LANGAN Data. 
             Only input the neccessary information on excel
         """
         trim = df.loc[df["Job Number"].str.contains(r"^Total Late", regex=True, na=False)].index[0] - 1
