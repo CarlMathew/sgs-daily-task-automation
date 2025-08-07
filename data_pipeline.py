@@ -127,7 +127,7 @@ class DataPipeline:
 
     
 
-    def fix_format_comments_genchem(self, df: pd.DataFrame) -> pd.DataFrame:
+    def fix_format_comments_genchem_gcvoa(self, df: pd.DataFrame) -> pd.DataFrame:
         """
             Fixed the dateformat of comments (every date string) in genchem into m/d/yy
             eg. (5/11/25, 6/15/25)
@@ -136,7 +136,7 @@ class DataPipeline:
         def check_date_and_format(comment:str):
             parsed_dates = pd.to_datetime(comment, errors="coerce")
             if pd.notna(parsed_dates):
-                return parsed_dates.strftime("%#m/%#d/%y")
+                return parsed_dates.strftime("%#m/%#d/%Y")
             else:
                 return comment
         
@@ -396,8 +396,8 @@ class DataPipeline:
 
 
                 # Format the comments\eta of genchem tab
-                if report_type == "GENCHEM":
-                    df = self.fix_format_comments_genchem(df)
+                if report_type == "GENCHEM" or report_type == "GCVOA":
+                    df = self.fix_format_comments_genchem_gcvoa(df)
 
 
                 
@@ -1119,10 +1119,10 @@ class DataPipeline:
             df.loc[df["Days Late"] < -1, "Fill Color"] = "9BC2E6"
 
             # Add a column (Font) to change the font in excel based on tat
-            df.loc[df["TAT"].isin(["1", "2", "3", "4", "5", "1*", "2*", "3*", "4*", "5*"]), "Font"] = "RedAndBold"
+            df.loc[df["TAT"].isin([1,2,3,4,5,"1", "2", "3", "4", "5", "1*", "2*", "3*", "4*", "5*"]), "Font"] = "RedAndBold"
 
             if site == "Dayton":
-                df.loc[df["TAT"].isin(["6*"]), "Font"] = "PurpleAndBold"
+                df.loc[df["TAT"].isin(["6*", "5", "5*", 5]), "Font"] = "PurpleAndBold"
             
             df.loc[df["TAT"].isin(["6"]), "Font"] = "PurpleAndBold"
 
@@ -1209,47 +1209,53 @@ class DataPipeline:
         df: pd.DataFrame = df[:trim]
 
 
-        data_langan = df.loc[(df["Account Number"].str.contains(r"^LANGAN", regex=True, case= False)) & (df["Project Description"].str.contains(r"^South Brooklyn", regex=True, case= False))].reset_index().to_dict(orient="records")
-
-        dont_remove:list[int] = []
-
-        for data in data_langan:
-
-            index_num:int = data["index"]   
+        if len(df) > 0:
 
 
-            if not index_num in dont_remove:
-                for index, i in enumerate(range(index_num + 1, len(df) + 1)):
+            data_langan = df.loc[(df["Account Number"].str.contains(r"^LANGAN", regex=True, case= False)) & (df["Project Description"].str.contains(r"^South Brooklyn", regex=True, case= False))].reset_index().to_dict(orient="records")
 
-                    try:
-                        langan_data = df.loc[df.index == index_num + index ].reset_index().to_dict(orient = "records")
-                        row_data:dict = langan_data[0]
-                        index_of_data:int = row_data["index"]
-                        job_number:str = row_data["Job Number"]
-                        account_number_value:str = row_data["Account Number"]
-                        project_description_value:str = row_data["Project Description"]
+            dont_remove:list[int] = []
+
+            for data in data_langan:
+
+                index_num:int = data["index"]   
 
 
-                        if isinstance(account_number_value, str) and account_number_value.lower() == "langan" and project_description_value == "South Brooklyn Marine Terminal, Brooklyn, NY":
-                            dont_remove.append(index_of_data)
-                        elif job_number.startswith("LAB"):
-                            dont_remove.append(index_num)
-                            dont_remove.append(index_of_data)
-                            break
-                        else:
-                            break
-                                                                                                                                                                                                                    
-                    except Exception as e:
-                        pass
+                if not index_num in dont_remove:
+                    for index, i in enumerate(range(index_num + 1, len(df) + 1)):
+
+                        try:
+                            langan_data = df.loc[df.index == index_num + index ].reset_index().to_dict(orient = "records")
+                            row_data:dict = langan_data[0]
+                            index_of_data:int = row_data["index"]
+                            job_number:str = row_data["Job Number"]
+                            account_number_value:str = row_data["Account Number"]
+                            project_description_value:str = row_data["Project Description"]
 
 
-        df = df.loc[df.index.isin(dont_remove)]
+                            if isinstance(account_number_value, str) and account_number_value.lower() == "langan" and project_description_value == "South Brooklyn Marine Terminal, Brooklyn, NY":
+                                dont_remove.append(index_of_data)
+                            elif job_number.startswith("LAB"):
+                                dont_remove.append(index_num)
+                                dont_remove.append(index_of_data)
+                                break
+                            else:
+                                break
+                                                                                                                                                                                                                        
+                        except Exception as e:
+                            pass
 
-        df = pd.concat([df, last_colums], axis= 0)
+
+            df = df.loc[df.index.isin(dont_remove)]
+
+            df = pd.concat([df, last_colums], axis= 0)
+            
+            # Improve!!!!!!!!!
+            df = df.reset_index()
+            df = df.drop("index", axis = 1)
         
-        # Improve!!!!!!!!!
-        df = df.reset_index()
-        df = df.drop("index", axis = 1)
+        else:
+            df = pd.concat([df, last_colums], axis= 0)
 
         return df
             
