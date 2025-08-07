@@ -1051,6 +1051,32 @@ class DataPipeline:
         df["Receive Date"] = df["Receive Date"].dt.strftime("%d-%b-%y")
 
         return df
+    
+
+    def xlookup_late_in_rushprio_tab(self, df:pd.DataFrame, current_report:pd.DataFrame) -> pd.DataFrame: 
+
+        """
+            Lookup the late tab into rush prio, with a conditions of late only.
+
+            Args:
+                df: pd.DataFrame -> current late report
+                current_report: pd.DataFrame -> excel file of todays report
+            
+            Returns:
+                pd.DataFrame: return the cleaned data
+
+        """
+        current_report = pd.read_excel(current_report, sheet_name="RUSH_PRIORITY")
+        df_isLate = df.loc[( df["Days Late"] >= 1) & (df["TAT"].isin([1, "1", "1*", 2, "2", "2*", 3, "3", "3*", 4, "4", "4*", 5, "5", "5*", 6, "6", "6*", 13, "13", "13*"]))]
+
+        index_of_late_lookup = list(df_isLate.index)
+        commments_eta_for_late = self.xlookup_function("Job Number", "Comments/ETA", df_isLate, current_report) 
+
+
+        df.loc[df.index.isin(index_of_late_lookup), "Comments/ETA"] = commments_eta_for_late
+
+
+        return df
 
     def pipeline_for_late(self, 
                           files: list[str],
@@ -1139,28 +1165,18 @@ class DataPipeline:
 
 
 
+
             # Dayton additional Filter
             if site == "Dayton":
                 df= self.additioonal_filter_for_late(df)
+                # Lookup the late tab (Comments/ETA) to rush prio (Dayton For Now)
+                df = self.xlookup_late_in_rushprio_tab(df, current_report)
 
 
             # Count of late in tab and late > 3
             self.count_samples_in_late_v2(df, maximum_number)
 
            
-
-           
-            #Modified: Xlookup the comments to rush prio tab
-            # current_report = pd.read_excel(current_report, sheet_name="RUSH_PRIORITY")
-            # df_late = df.loc[( df["Fill Color"] == "F4B084") & (df["TAT"].isin([1, "1", "1*", 2, "2", "2*", 3, "3", "3*", 4, "4", "4*", 5, "5", "5*", 6, "6", "6*", 13, "13", "13*"]))]
-            # comments_eta: list[str] = self.xlookup_function("Job Number", "Comments/ETA", df, current_report)
-
-           
-
-            # df["Comments/ETA"] = comments_eta
-            # df["Comments/ETA"] = df["Comments/ETA"].astype(str)
-
-
             # Add the site in the datframe
             df = self.add_report_type_in_df(df, site)
 
